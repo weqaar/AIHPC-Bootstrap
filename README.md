@@ -18,3 +18,9 @@ ranging from college students to experienced professionals.
 1. [Dev Environment Setup](projects/01-dev-environment-setup/) — build a
    local Ubuntu 26.04 LTS **dev-workstation**, a headless QEMU
    **dev-vm**, and wire up VS Code Remote-SSH against it.
+
+## Ethics & Integrity
+
+**Mandatory reading:** [`docs/ETHICS_AND_INTEGRITY.md`](docs/ETHICS_AND_INTEGRITY.md)
+covers IEEE Code of Ethics compliance, AI ethics and attribution rules,
+and academic / professional integrity expectations for all participants.

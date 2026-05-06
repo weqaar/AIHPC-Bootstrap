@@ -12,6 +12,10 @@
   or AMD-V) enabled in firmware, ≥ 16 GB RAM (32 GB recommended), and
   ≥ 100 GB free disk.
 - Assumed familiarity: basic Linux shell usage.
+- **Mandatory reading before you begin:**
+  [`docs/ETHICS_AND_INTEGRITY.md`](../../docs/ETHICS_AND_INTEGRITY.md) —
+  covers IEEE Code of Ethics, AI ethics and attribution, and academic
+  integrity expectations for this curriculum.
 
 ## Target architecture
 
