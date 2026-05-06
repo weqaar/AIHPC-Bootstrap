@@ -147,8 +147,37 @@ sudo apt -y install \
 
 ## Part 2 — Build the **dev-vm** (headless Ubuntu 26.04 LTS)
 
-We use the official Ubuntu **cloud image** + `cloud-init` so the VM is
+We use the official Ubuntu **cloud image** + **cloud-init** so the VM is
 fully unattended and reproducible. The VM is **server / no GUI**.
+
+### What is cloud-init, and why do we need it?
+
+[cloud-init](https://cloud-init.io/) is a lightweight service that runs
+on the very first boot of a Linux image and **automatically configures**
+things you would otherwise have to do by hand: creating users, injecting
+SSH keys, setting the hostname, installing packages, etc.
+
+Despite the name, **cloud-init has nothing to do with using a cloud
+provider.** The word "cloud" is historical — the tool was originally
+written to provision VMs in cloud environments (AWS, Azure, GCP), but it
+works equally well on a local QEMU/KVM guest, a Vagrant box, or bare
+metal. We are using it here purely as a convenient, scriptable way to
+set up our local VM without clicking through an installer or manually
+editing config files after boot.
+
+In practice this means:
+
+1. We download a pre-built Ubuntu **cloud image** (a compressed,
+   minimal disk image published by Canonical — no installer needed).
+2. We write a small YAML file (`user-data`) describing how we want the
+   VM configured (username `dev`, our SSH public key, packages to
+   install).
+3. We package that YAML into a tiny `seed.iso` and pass it to QEMU.
+4. On first boot cloud-init reads the seed, applies the config, and the
+   VM comes up fully ready — no manual intervention required.
+
+This is the same workflow used to spin up thousands of identical VMs in a
+data centre, just running on your laptop for one VM.
 
 ### 2.1 Lay out a working directory
 
