@@ -145,6 +145,113 @@ sudo apt -y install \
 
 ---
 
+## Part 1b — Terminal configuration (dev-workstation **and** dev-vm)
+
+> **Apply these steps on both machines.** Run them on the
+> dev-workstation now, and again inside dev-vm once it is up
+> (Part 2). The goal is a consistent, readable terminal with a
+> Git-aware prompt everywhere you work.
+
+### Terminal colour scheme
+
+Set your terminal emulator's default profile to **green text on a black
+background**:
+
+| Property   | Value              |
+| ---------- | ------------------ |
+| Foreground | `rgb(31, 214, 85)` — bright green |
+| Background | `rgb(0, 0, 0)`     — pure black   |
+
+This matches the **Campbell PowerShell** colour scheme shipped with
+Windows Terminal. We don't use Windows, Windows Terminal, or PowerShell
+— the reference is only to name the palette so you can look it up if you
+want the full 16-colour table.
+
+**GNOME Terminal** (default on Ubuntu desktop):
+
+1. Open **Preferences → Profiles → Unnamed** (or create a new profile).
+2. Under **Colors**, uncheck *Use colors from system theme*.
+3. Set **Default color → Text** to `#1FD655` and **Background** to
+   `#000000`.
+
+**VS Code integrated terminal** — add to your User `settings.json`
+(`Ctrl+Shift+P` → *Preferences: Open User Settings (JSON)*):
+
+```jsonc
+"workbench.colorCustomizations": {
+    "terminal.foreground": "#1FD655",
+    "terminal.background": "#000000"
+}
+```
+
+### Git-aware Bash prompt
+
+We use Git's official `git-prompt.sh` helper to show branch, dirty
+state, and upstream status right in the shell prompt.
+
+#### 1. Install `git-prompt.sh`
+
+The script ships with Git but isn't always on `$PATH`. Copy it to a
+shared location:
+
+```bash
+sudo mkdir -p /opt/bin
+sudo cp /usr/lib/git-core/git-prompt.sh /opt/bin/git-prompt.sh
+sudo chmod 644 /opt/bin/git-prompt.sh
+```
+
+> **Tip.** The file location may vary by distro. If the path above
+> doesn't exist, try `dpkg -L git | grep git-prompt` or
+> `find / -name git-prompt.sh 2>/dev/null`.
+
+#### 2. Configure `~/.bashrc`
+
+Open `~/.bashrc` and **replace** the default prompt section (the block
+that sets `PS1`) with the snippet below. If you prefer, append it at the
+end — just make sure an earlier line doesn't override `PS1` afterwards.
+
+```bash
+# --------------- Git prompt ------------------------------------------------
+source /opt/bin/git-prompt.sh
+export GIT_PS1_SHOWDIRTYSTATE=1
+export GIT_PS1_SHOWUPSTREAM="auto"
+export GIT_PS1_SHOWSTASHSTATE="n"
+export GIT_PS1_SHOWUNTRACKEDFILES="n"
+
+if [ "$color_prompt" = yes ]; then
+    PS1='\[\e[1;35m\]\u\[\e[m\]@\[\e[01;36m\]\h\[\e[m\] \[\e[01;33m\]\W\[\e[m\]$(__git_ps1 " \[\e[01;34m\]($(basename "$(git rev-parse --show-toplevel 2>/dev/null)"):\[\e[m\]\[\e[01;31m\]%s\[\e[m\]\[\e[01;34m\])\[\e[m\]")\$ '
+else
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+fi
+unset color_prompt force_color_prompt
+# ---------------------------------------------------------------------------
+```
+
+**What the colour prompt gives you:**
+
+```
+user@host AIHPC-Bootstrap (AIHPC-Bootstrap:main *)$
+ ^         ^                ^                  ^
+ magenta   cyan             blue repo:red branch  * = dirty
+```
+
+- `\u` (user) — **bold magenta**
+- `\h` (hostname) — **bold cyan**
+- `\W` (current dir basename) — **bold yellow**
+- repo name — **bold blue**
+- branch + dirty/upstream — **bold red**
+
+#### 3. Reload
+
+```bash
+source ~/.bashrc
+```
+
+Navigate into a Git repository and you should see the coloured prompt
+with branch info.
+
+---
+
 ## Part 2 — Build the **dev-vm** (headless Ubuntu 26.04 LTS)
 
 We use the official Ubuntu **cloud image** + **cloud-init** so the VM is
