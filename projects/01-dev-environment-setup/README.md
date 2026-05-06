@@ -398,11 +398,75 @@ Host dev-vm
     User dev
     IdentityFile ~/.ssh/id_ed25519
     ForwardAgent yes
+    ForwardX11 yes
+    ForwardX11Trusted yes
     ServerAliveInterval 30
 EOF
 chmod 600 ~/.ssh/config
 ssh dev-vm 'hostnamectl; uname -a'
 ```
+
+### 2.7 X11 forwarding — run GUI apps from dev-vm on your workstation display
+
+Even though dev-vm is headless (no desktop environment), you may need to
+run graphical applications from the VM — profilers, plot windows, GUI
+debuggers, etc. **X11 forwarding** over SSH lets a program running on
+dev-vm open its windows on the dev-workstation's display with no extra
+VNC/RDP setup.
+
+#### On the dev-workstation (X11 server side)
+
+The workstation already runs an X server (Xorg or XWayland under GNOME).
+Allow local forwarded connections:
+
+```bash
+# Usually not needed on a default Ubuntu desktop, but if you hit
+# "cannot open display" errors, run:
+xhost +local:
+```
+
+> **Wayland note.** Ubuntu 26.04 defaults to a Wayland session. SSH X11
+> forwarding still works because GNOME launches **XWayland** automatically.
+> If you run into issues, log out and choose the **Ubuntu on Xorg**
+> session at the login screen, or set `export GDK_BACKEND=x11` before
+> launching the remote app.
+
+#### On dev-vm (X11 client side)
+
+Install the minimal X11 libraries so forwarded apps can render:
+
+```bash
+ssh dev-vm
+sudo apt -y install xauth x11-apps
+```
+
+The `ForwardX11` and `ForwardX11Trusted` options we added to
+`~/.ssh/config` in section 2.6 ensure every `ssh dev-vm` session
+automatically sets `DISPLAY` inside the guest.
+
+#### Verify
+
+```bash
+# From the workstation, open a forwarded X session:
+ssh dev-vm
+
+# Inside dev-vm, confirm DISPLAY is set:
+echo $DISPLAY          # should print something like localhost:10.0
+
+# Launch a test GUI app — a pair of eyeballs that follow your mouse:
+xeyes &
+```
+
+`xeyes` should appear on the dev-workstation's desktop. Close it and
+you're done — any GUI application launched over this SSH session will
+display locally.
+
+> **Tip.** For heavier GUI workloads (IDEs, browsers), consider
+> `ssh -Y dev-vm` (trusted forwarding, already enabled in our config)
+> or running an X11-compressed tunnel (`ssh -XC dev-vm`). For
+> sustained remote desktop use, a full VNC/xRDP setup would be more
+> appropriate — but for occasional tool windows, X11 forwarding is the
+> simplest path.
 
 ---
 
